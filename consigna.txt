@@ -1,0 +1,93 @@
+Objetivo
+Implementar el contrato inteligente modelado en la Actividad 4, seleccionando una tecnología Blockchain y un lenguaje de programación adecuados, y demostrar su funcionamiento durante la clase del lunes 16 de noviembre de 2026.
+
+Consigna
+Cada equipo deberá desarrollar un prototipo funcional basado obligatoriamente en el mismo proceso, caso de uso y modelo de contrato inteligente presentado en la Actividad 4. No se podrá reemplazar por otro proyecto o actividad.
+
+1. Selección y justificación tecnológica
+Seleccionar la tecnología Blockchain y el lenguaje de programación que utilizarán para implementar el contrato inteligente.
+
+Podrán mantener la elección tecnológica propuesta en la Actividad 4 o modificarla, justificando la decisión. La fundamentación deberá considerar:
+
+Las características del proceso y del activo representado.
+Los participantes y sus permisos.
+Las necesidades de privacidad y acceso a la información.
+La adecuación de la tecnología y del lenguaje al caso de uso.
+2. Implementación del contrato inteligente
+Desarrollar el contrato inteligente definido en la Actividad 4, contemplando:
+
+El activo representado y sus atributos.
+Las operaciones principales del proceso.
+Los estados y las transiciones definidos en el Diagrama de Transición de Estados.
+Las reglas de negocio.
+Las restricciones de acceso correspondientes a los participantes.
+Se podrán realizar ajustes técnicos necesarios para implementar el modelo, siempre que se documenten y justifiquen, manteniendo el proceso y el caso de uso originales.
+
+3. Preparación del entorno y de las pruebas
+Preparar un entorno de desarrollo local, una red de prueba o un entorno de ejecución provisto por la tecnología seleccionada.
+
+Cada equipo deberá definir los casos de prueba que ejecutará durante la clase de demostración, indicando:
+
+La operación que realizará.
+Los datos y las condiciones iniciales.
+El resultado esperado.
+El entorno deberá estar instalado, configurado y listo para utilizarse al comenzar la presentación.
+
+4. Ejecución de las pruebas durante la clase
+Las pruebas del contrato inteligente deberán ejecutarse en vivo, durante la clase de demostración del lunes 16 de noviembre de 2026.
+
+Cada equipo deberá demostrar, como mínimo:
+
+La creación o el registro del activo.
+Un recorrido válido por los estados del proceso.
+La consulta de los datos y del estado del activo.
+El rechazo de una transición o una operación inválida.
+El rechazo de una operación realizada sin los permisos necesarios, cuando corresponda al modelo.
+Durante cada prueba deberán explicar qué operación ejecutan, qué resultado esperan y cómo verifican el resultado obtenido.
+
+Las capturas, los registros o los videos preparados previamente podrán utilizarse como material complementario, pero no reemplazarán la ejecución de las pruebas durante la clase.
+
+Formato y contenido de la entrega
+Cada equipo deberá entregar un único archivo ZIP que contenga:
+
+Documento del desarrollo, con los siguientes apartados:
+
+Carátula con el nombre del proyecto y los datos de los integrantes.
+Breve descripción del proceso trabajado en la Actividad 4.
+Tecnología Blockchain y lenguaje elegidos, con su justificación.
+Correspondencia entre el modelo original y las funcionalidades implementadas.
+Ajustes técnicos realizados y sus motivos.
+Requisitos del entorno y pasos para desplegar, ejecutar y probar la solución.
+Casos de prueba que se ejecutarán durante la demostración y sus resultados esperados.
+Limitaciones del prototipo.
+Fuentes consultadas y declaración de uso de IA, indicando cómo se utilizó y cómo se verificaron los resultados.
+Código fuente del contrato inteligente.
+
+Archivos de configuración, scripts y pruebas necesarios para ejecutar y demostrar la solución, según la tecnología seleccionada.
+
+El ZIP deberá contener los archivos del desarrollo, no solamente enlaces a recursos externos. No deberán incluir contraseñas, claves privadas ni credenciales.
+
+Presentación y demostración
+El lunes 16 de noviembre de 2026, cada equipo deberá:
+
+Recordar brevemente el proceso y el contrato inteligente modelados en la Actividad 4.
+Presentar la tecnología Blockchain y el lenguaje utilizados, justificando su elección.
+Ejecutar en el entorno preparado las pruebas indicadas en este enunciado.
+Explicar los resultados obtenidos, los ajustes técnicos y las limitaciones del prototipo.
+Todos los integrantes deberán participar y poder explicar las decisiones tomadas y el código presentado.
+
+Alcance
+El prototipo deberá implementar las operaciones y reglas principales del contrato inteligente de la Actividad 4 y permitir demostrar un recorrido funcional del proceso de principio a fin.
+
+No se requiere una interfaz gráfica ni un despliegue en producción. Las limitaciones del prototipo deberán explicitarse y no podrán implicar la sustitución del caso de uso original.
+
+Criterios de evaluación
+Se evaluarán:
+
+La continuidad y coherencia con el trabajo presentado en la Actividad 4.
+La fundamentación de la tecnología y del lenguaje seleccionados.
+El funcionamiento del contrato inteligente y el cumplimiento de sus reglas.
+La ejecución de las pruebas durante la clase y la explicación de sus resultados.
+La claridad y la integridad del material entregado en el ZIP.
+La participación y la comprensión del desarrollo por parte de los integrantes.
+

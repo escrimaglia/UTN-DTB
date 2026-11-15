@@ -1,0 +1,45 @@
+Red: localhost
+
+==============================================================================
+PARTE 1. INICIALIZACIÓN: despliegue de los contratos, roles y fondos
+==============================================================================
+
+------------------------------------------------------------------------------
+CASO 1. Despliegue de los contratos
+------------------------------------------------------------------------------
+  Operación:                   desplegar PesoToken(banco) y ECanjeProtegido(token, admin)
+  Ejecuta:                     admin del consorcio
+  Esperado:                    dos contratos con su dirección en la red
+  PesoToken (ARSt):            0x5FbDB2315678afecb367f032d93F642f64180aa3
+  ECanjeProtegido:             0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+  [OK]    los dos contratos tienen código en la red
+
+------------------------------------------------------------------------------
+CASO 2. Asignación de roles a cada participante
+------------------------------------------------------------------------------
+  Operación:                   grantRole(rol, cuenta) para cada participante
+  Ejecuta:                     admin del consorcio
+  Esperado:                    seis cuentas con rol; el intruso sin rol
+  Rol productor:               0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
+  Rol agronomía:               0x90F79bf6EB2c4f870365E785982E1f101E93b906
+  Rol aseguradora:             0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65
+  Rol acopio:                  0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc
+  Rol oráculo primario:        0x976EA74026E726554dB657fA54763abd0C3a0aa9
+  Rol oráculo alternativo:     0x14dC79964da2C08b23698B3D3cc7Ca32193d9955
+  Cuenta sin rol:              0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f (intruso)
+  [OK]    cada participante tiene su rol
+
+------------------------------------------------------------------------------
+CASO 3. Fondos: el banco emite pesos tokenizados para la aseguradora
+------------------------------------------------------------------------------
+  Operación:                   emitir(aseguradora, $ 200 M) y approve(contrato)
+  Ejecuta:                     banco y aseguradora
+  Esperado:                    aseguradora con $ 200 M; el contrato autorizado a debitar
+  Obtenido:                    saldo de la aseguradora $ 200.000.000
+  [OK]    la aseguradora tiene $ 200 M en pesos tokenizados
+
+  Direcciones guardadas en:    despliegue.json (las usan las campañas)
+
+------------------------------------------------------------------------------
+RESULTADO: 3 verificaciones correctas, 0 fallidas.
+------------------------------------------------------------------------------

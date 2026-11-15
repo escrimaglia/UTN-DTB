@@ -1,0 +1,140 @@
+Red: localhost
+
+==============================================================================
+CAMPAÑA: AÑO NORMAL (índice 300)
+==============================================================================
+  Índice que va a informar:    300 (el oráculo lo informa en el caso 7)
+  Regla de la póliza:          índice ≥ 600 → 50 % · índice ≥ 800 → 100 % de $ 120.000.000
+  Quién decide:                el contrato, al cerrar el período crítico (caso 8)
+
+------------------------------------------------------------------------------
+CASO 1. Creación del activo: el productor solicita el canje
+------------------------------------------------------------------------------
+  Operación:                   crearSolicitud(agronomía, lote, "soja", 2026, 210.000 kg)
+  Ejecuta:                     productor
+  Esperado:                    canje nuevo en Solicitado; evento CanjeSolicitado
+  Obtenido:                    canje n.º 1 · estado Solicitado · deuda 210 t
+  [OK]    el canje 1 existe y está en Solicitado
+
+------------------------------------------------------------------------------
+CASO 2. Rechazo por falta de permisos
+------------------------------------------------------------------------------
+  Operación:                   A) crearSolicitud(...) desde una cuenta sin PRODUCTOR_ROLE
+  Ejecuta:                     intruso
+  Esperado:                    AccessControlUnauthorizedAccount
+  Revertida con:               AccessControlUnauthorizedAccount(0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f, 0x0918bd1fbce554f78f0248a906c12b0d9c81164fc00cd1466d94dbac52257152)
+  [OK]    la transacción se revirtió con AccessControlUnauthorizedAccount
+  Operación:                   B) aprobarCanje(1, …) por alguien que no es la agronomía del canje
+  Ejecuta:                     productor
+  Esperado:                    NoEsLaParte
+  Revertida con:               NoEsLaParte(1, 0x90F79bf6EB2c4f870365E785982E1f101E93b906, 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC)
+  [OK]    la transacción se revirtió con NoEsLaParte
+  [OK]    el canje sigue en Solicitado (nada cambió)
+
+------------------------------------------------------------------------------
+CASO 3. Recorrido válido: la agronomía aprueba el canje
+------------------------------------------------------------------------------
+  Operación:                   aprobarCanje(1, aseguradora, acopio, $ 400.000/t, fecha límite)
+  Ejecuta:                     agronomía
+  Esperado:                    Solicitado → Aprobado
+  Obtenido:                    estado Aprobado
+  [OK]    Solicitado → Aprobado
+
+------------------------------------------------------------------------------
+CASO 4. Rechazo de una transición inválida
+------------------------------------------------------------------------------
+  Operación:                   entregarInsumos(1, remito) sin póliza emitida
+  Ejecuta:                     agronomía
+  Esperado:                    EstadoInvalido (está en 1 Aprobado; hace falta 2 Asegurado)
+  Revertida con:               EstadoInvalido(1, 1, 2)
+  [OK]    la transacción se revirtió con EstadoInvalido
+  [OK]    el canje sigue en Aprobado
+
+------------------------------------------------------------------------------
+CASO 5. Recorrido válido: póliza e insumos
+------------------------------------------------------------------------------
+  Operación:                   emitirPoliza(1, $ 120 M, tramos [600 → 50 %, 800 → 100 %], prima 12 t)
+  Ejecuta:                     aseguradora
+  Esperado:                    Aprobado → Asegurado; la prima se suma a la deuda (222 t)
+  Obtenido:                    estado Asegurado · deuda 222 t
+  [OK]    Aprobado → Asegurado; deuda 222 t
+  Operación:                   entregarInsumos(1, remito)
+  Ejecuta:                     agronomía
+  Esperado:                    Asegurado → Vigente
+  Obtenido:                    estado Vigente
+  [OK]    Asegurado → Vigente
+
+------------------------------------------------------------------------------
+CASO 6. Consulta de datos y estado del activo (funciones view, sin gas)
+------------------------------------------------------------------------------
+  Operación:                   verCanje(1), verPoliza(1), calcularIndemnizacion(1, 300)
+  Ejecuta:                     cualquiera (consulta)
+  Esperado:                    datos del canje y de la póliza
+  Productor:                   0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
+  Agronomía:                   0x90F79bf6EB2c4f870365E785982E1f101E93b906
+  Cultivo / campaña:           soja 2026
+  Deuda:                       222 t = $ 88.800.000
+  Estado:                      Vigente
+  Suma asegurada:              $ 120.000.000
+  Si el índice es 300:         tramo 0 · indemnización $ 0
+  [OK]    con índice 300 la póliza pagaría $ 0
+
+------------------------------------------------------------------------------
+CASO 7. El oráculo informa el índice de sequía: 300
+------------------------------------------------------------------------------
+  Reloj:                       adelantado al día 40 del período crítico
+  Operación:                   reportarIndice(1, fecha, 300)
+  Ejecuta:                     oráculo primario
+  Esperado:                    índice 300 registrado
+  Obtenido:                    índice registrado 300
+  [OK]    el oráculo primario registró 300
+  Operación:                   reportarIndice(1, fecha, 100) mientras el primario está informando
+  Ejecuta:                     oráculo alternativo
+  Esperado:                    OraculoNoHabilitado
+  Revertida con:               OraculoNoHabilitado(0x14dC79964da2C08b23698B3D3cc7Ca32193d9955)
+  [OK]    la transacción se revirtió con OraculoNoHabilitado
+
+------------------------------------------------------------------------------
+CASO 8. Cierre del período crítico: el contrato decide
+------------------------------------------------------------------------------
+  Reloj:                       adelantado al fin del período crítico
+  Operación:                   cerrarPeriodoCritico(1)
+  Ejecuta:                     cualquiera (el contrato controla la fecha)
+  Esperado:                    Vigente → EnCosecha; indemnización $ 0
+  Obtenido:                    estado EnCosecha · indemnización $ 0
+  Decisión del contrato:       índice 300 < 600: NO HAY SINIESTRO, la póliza no paga
+  [OK]    Vigente → EnCosecha sin indemnización
+
+------------------------------------------------------------------------------
+CASO 9. La póliza no se ejecuta: la deuda se paga con la cosecha
+------------------------------------------------------------------------------
+  Operación:                   pagarIndemnizacion(1)
+  Ejecuta:                     aseguradora
+  Esperado:                    EstadoInvalido (está en 6 EnCosecha; haría falta 4 Siniestrado)
+  Revertida con:               EstadoInvalido(1, 6, 4)
+  [OK]    la transacción se revirtió con EstadoInvalido
+  Operación:                   entregarGranos(1, 100 t, carta de porte)
+  Ejecuta:                     acopio
+  Esperado:                    entrega parcial: sigue EnCosecha
+  Obtenido:                    estado EnCosecha · deuda 122 t
+  Operación:                   entregarGranos(1, 122 t, carta de porte)
+  Ejecuta:                     acopio
+  Esperado:                    EnCosecha → Saldado
+  Obtenido:                    estado Saldado · deuda 0 t
+  [OK]    la deuda en granos quedó cancelada: Saldado
+
+------------------------------------------------------------------------------
+CASO 10. Resumen de la campaña
+------------------------------------------------------------------------------
+  Índice informado:            300
+  Decisión del contrato:       no hubo siniestro: la póliza no se ejecutó
+  Pagó la aseguradora:         $ 0
+  Granos entregados:           222 t
+  Estado final:                canje n.º 1 en Saldado
+  Recorrido:                   Solicitado → Aprobado → Asegurado → Vigente →
+                               EnCosecha → Saldado
+  [OK]    el canje terminó Saldado
+
+------------------------------------------------------------------------------
+RESULTADO: 16 verificaciones correctas, 0 fallidas.
+------------------------------------------------------------------------------

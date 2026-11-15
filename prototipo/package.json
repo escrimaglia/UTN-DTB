@@ -1,0 +1,20 @@
+{
+  "name": "e-canje-protegido",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Prototipo del contrato e-CanjeProtegido (TP5 Desarrollo con Tecnologías Blockchain, UTN FRC)",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "node": "hardhat node",
+    "inicializar": "hardhat run scripts/inicializar.js --network localhost",
+    "campania:normal": "hardhat run scripts/campania-normal.js --network localhost",
+    "campania:sequia": "hardhat run scripts/campania-sequia.js --network localhost",
+    "demo": "hardhat run scripts/demo.js"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "5.1.0",
+    "hardhat": "^2.22.0"
+  }
+}

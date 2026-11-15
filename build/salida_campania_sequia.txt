@@ -1,0 +1,149 @@
+Red: localhost
+
+==============================================================================
+CAMPAÑA: SEQUÍA SEVERA (índice 850)
+==============================================================================
+  Índice que va a informar:    850 (el oráculo lo informa en el caso 7)
+  Regla de la póliza:          índice ≥ 600 → 50 % · índice ≥ 800 → 100 % de $ 120.000.000
+  Quién decide:                el contrato, al cerrar el período crítico (caso 8)
+
+------------------------------------------------------------------------------
+CASO 1. Creación del activo: el productor solicita el canje
+------------------------------------------------------------------------------
+  Operación:                   crearSolicitud(agronomía, lote, "soja", 2026, 210.000 kg)
+  Ejecuta:                     productor
+  Esperado:                    canje nuevo en Solicitado; evento CanjeSolicitado
+  Obtenido:                    canje n.º 2 · estado Solicitado · deuda 210 t
+  [OK]    el canje 2 existe y está en Solicitado
+
+------------------------------------------------------------------------------
+CASO 2. Rechazo por falta de permisos
+------------------------------------------------------------------------------
+  Operación:                   A) crearSolicitud(...) desde una cuenta sin PRODUCTOR_ROLE
+  Ejecuta:                     intruso
+  Esperado:                    AccessControlUnauthorizedAccount
+  Revertida con:               AccessControlUnauthorizedAccount(0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f, 0x0918bd1fbce554f78f0248a906c12b0d9c81164fc00cd1466d94dbac52257152)
+  [OK]    la transacción se revirtió con AccessControlUnauthorizedAccount
+  Operación:                   B) aprobarCanje(2, …) por alguien que no es la agronomía del canje
+  Ejecuta:                     productor
+  Esperado:                    NoEsLaParte
+  Revertida con:               NoEsLaParte(2, 0x90F79bf6EB2c4f870365E785982E1f101E93b906, 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC)
+  [OK]    la transacción se revirtió con NoEsLaParte
+  [OK]    el canje sigue en Solicitado (nada cambió)
+
+------------------------------------------------------------------------------
+CASO 3. Recorrido válido: la agronomía aprueba el canje
+------------------------------------------------------------------------------
+  Operación:                   aprobarCanje(2, aseguradora, acopio, $ 400.000/t, fecha límite)
+  Ejecuta:                     agronomía
+  Esperado:                    Solicitado → Aprobado
+  Obtenido:                    estado Aprobado
+  [OK]    Solicitado → Aprobado
+
+------------------------------------------------------------------------------
+CASO 4. Rechazo de una transición inválida
+------------------------------------------------------------------------------
+  Operación:                   entregarInsumos(2, remito) sin póliza emitida
+  Ejecuta:                     agronomía
+  Esperado:                    EstadoInvalido (está en 1 Aprobado; hace falta 2 Asegurado)
+  Revertida con:               EstadoInvalido(2, 1, 2)
+  [OK]    la transacción se revirtió con EstadoInvalido
+  [OK]    el canje sigue en Aprobado
+
+------------------------------------------------------------------------------
+CASO 5. Recorrido válido: póliza e insumos
+------------------------------------------------------------------------------
+  Operación:                   emitirPoliza(2, $ 120 M, tramos [600 → 50 %, 800 → 100 %], prima 12 t)
+  Ejecuta:                     aseguradora
+  Esperado:                    Aprobado → Asegurado; la prima se suma a la deuda (222 t)
+  Obtenido:                    estado Asegurado · deuda 222 t
+  [OK]    Aprobado → Asegurado; deuda 222 t
+  Operación:                   entregarInsumos(2, remito)
+  Ejecuta:                     agronomía
+  Esperado:                    Asegurado → Vigente
+  Obtenido:                    estado Vigente
+  [OK]    Asegurado → Vigente
+
+------------------------------------------------------------------------------
+CASO 6. Consulta de datos y estado del activo (funciones view, sin gas)
+------------------------------------------------------------------------------
+  Operación:                   verCanje(2), verPoliza(2), calcularIndemnizacion(2, 850)
+  Ejecuta:                     cualquiera (consulta)
+  Esperado:                    datos del canje y de la póliza
+  Productor:                   0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
+  Agronomía:                   0x90F79bf6EB2c4f870365E785982E1f101E93b906
+  Cultivo / campaña:           soja 2026
+  Deuda:                       222 t = $ 88.800.000
+  Estado:                      Vigente
+  Suma asegurada:              $ 120.000.000
+  Si el índice es 850:         tramo 2 · indemnización $ 120.000.000
+  [OK]    con índice 850 la póliza pagaría $ 120.000.000
+
+------------------------------------------------------------------------------
+CASO 7. El oráculo informa el índice de sequía: 850
+------------------------------------------------------------------------------
+  Reloj:                       adelantado al día 40 del período crítico
+  Operación:                   reportarIndice(2, fecha, 850)
+  Ejecuta:                     oráculo primario
+  Esperado:                    índice 850 registrado
+  Obtenido:                    índice registrado 850
+  [OK]    el oráculo primario registró 850
+  Operación:                   reportarIndice(2, fecha, 100) mientras el primario está informando
+  Ejecuta:                     oráculo alternativo
+  Esperado:                    OraculoNoHabilitado
+  Revertida con:               OraculoNoHabilitado(0x14dC79964da2C08b23698B3D3cc7Ca32193d9955)
+  [OK]    la transacción se revirtió con OraculoNoHabilitado
+
+------------------------------------------------------------------------------
+CASO 8. Cierre del período crítico: el contrato decide
+------------------------------------------------------------------------------
+  Reloj:                       adelantado al fin del período crítico
+  Operación:                   cerrarPeriodoCritico(2)
+  Ejecuta:                     cualquiera (el contrato controla la fecha)
+  Esperado:                    Vigente → Siniestrado; indemnización $ 120.000.000
+  Obtenido:                    estado Siniestrado · indemnización $ 120.000.000
+  Decisión del contrato:       índice 850 ≥ 800: HAY SINIESTRO, la póliza paga 100 % = $ 120.000.000
+  [OK]    Vigente → Siniestrado con la indemnización de la póliza
+
+------------------------------------------------------------------------------
+CASO 9. Se ejecuta la póliza: pago, liquidación (primero la deuda) y cobro
+------------------------------------------------------------------------------
+  Operación:                   pagarIndemnizacion(2)
+  Ejecuta:                     aseguradora
+  Esperado:                    Siniestrado → Indemnizado; el contrato recibe $ 120.000.000
+  Obtenido:                    estado Indemnizado · saldo de la aseguradora $ 80.000.000
+  [OK]    Siniestrado → Indemnizado
+  Operación:                   liquidarCanje(2)
+  Ejecuta:                     cualquiera
+  Esperado:                    $ 88.800.000 a la agronomía y $ 31.200.000 al productor
+  Obtenido:                    estado Saldado
+    a la agronomía (deuda):    $ 88.800.000
+    al productor (saldo):      $ 31.200.000
+    deuda restante:            0 t
+  [OK]    la indemnización cancela primero la deuda y el resto es del productor
+  Operación:                   retirarFondos()
+  Ejecuta:                     agronomía y productor
+  Esperado:                    cada uno recibe lo que le asignó la liquidación
+  Obtenido:                    agronomía cobró $ 88.800.000 · productor cobró $ 31.200.000
+  [OK]    lo cobrado coincide con la liquidación
+  Operación:                   retirarFondos() por segunda vez
+  Ejecuta:                     agronomía
+  Esperado:                    NadaParaRetirar
+  Revertida con:               NadaParaRetirar()
+  [OK]    la transacción se revirtió con NadaParaRetirar
+
+------------------------------------------------------------------------------
+CASO 10. Resumen de la campaña
+------------------------------------------------------------------------------
+  Índice informado:            850
+  Decisión del contrato:       hubo siniestro: la póliza se ejecutó
+  Pagó la aseguradora:         $ 120.000.000
+  Granos entregados:           0 t
+  Estado final:                canje n.º 2 en Saldado
+  Recorrido:                   Solicitado → Aprobado → Asegurado → Vigente →
+                               Siniestrado → Indemnizado → Saldado
+  [OK]    el canje terminó Saldado
+
+------------------------------------------------------------------------------
+RESULTADO: 18 verificaciones correctas, 0 fallidas.
+------------------------------------------------------------------------------
